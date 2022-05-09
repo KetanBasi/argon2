@@ -15,12 +15,12 @@
  * software. If not, they may be obtained at the above URLs.
  */
 
+#include "encoding.h"
+#include "core.h"
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
-#include "encoding.h"
-#include "core.h"
 
 /*
  * Example code for a decoder and encoder of "hash strings", with Argon2
@@ -288,7 +288,6 @@ int decode_string(argon2_context *ctx, const char *str, argon2_type type) {
         (x) = dec_x;                                                           \
     } while ((void)0, 0)
 
-
 /* Decoding prefix into uint32_t decimal */
 #define DECIMAL_U32(x)                                                         \
     do {                                                                       \
@@ -299,7 +298,6 @@ int decode_string(argon2_context *ctx, const char *str, argon2_type type) {
         }                                                                      \
         (x) = (uint32_t)dec_x;                                                 \
     } while ((void)0, 0)
-
 
 /* Decoding base64 into a binary buffer */
 #define BIN(buf, max_len, len)                                                 \
@@ -315,7 +313,7 @@ int decode_string(argon2_context *ctx, const char *str, argon2_type type) {
     size_t maxsaltlen = ctx->saltlen;
     size_t maxoutlen = ctx->outlen;
     int validation_result;
-    const char* type_string;
+    const char *type_string;
 
     /* We should start with the argon2_type we are using */
     type_string = argon2_type2string(type, 0);
@@ -344,8 +342,9 @@ int decode_string(argon2_context *ctx, const char *str, argon2_type type) {
     BIN(ctx->out, maxoutlen, ctx->outlen);
 
     /* The rest of the fields get the default values */
-    ctx->secret = NULL;
-    ctx->secretlen = 0;
+    /*use original value of ctx instead "resetting" it to default*/
+    /*ctx->secret = NULL;
+    ctx->secretlen = 0;*/
     ctx->ad = NULL;
     ctx->adlen = 0;
     ctx->allocate_cbk = NULL;
@@ -400,17 +399,16 @@ int encode_string(char *dst, size_t dst_len, argon2_context *ctx,
         dst_len -= sb_len;                                                     \
     } while ((void)0, 0)
 
-    const char* type_string = argon2_type2string(type, 0);
+    const char *type_string = argon2_type2string(type, 0);
     int validation_result = validate_inputs(ctx);
 
     if (!type_string) {
-      return ARGON2_ENCODING_FAIL;
+        return ARGON2_ENCODING_FAIL;
     }
 
     if (validation_result != ARGON2_OK) {
-      return validation_result;
+        return validation_result;
     }
-
 
     SS("$");
     SS(type_string);
@@ -460,4 +458,3 @@ size_t numlen(uint32_t num) {
     }
     return len;
 }
-

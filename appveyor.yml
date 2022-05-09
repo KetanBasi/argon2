@@ -23,3 +23,9 @@ test_script:
   - ps: kats\test.ps1
   - ps: if ("Release" -eq $env:configuration) { vs2015\build\Argon2OptTestCI.exe }
   - ps: if ("Release" -eq $env:configuration) { vs2015\build\Argon2RefTestCI.exe }
+
+after_test:
+  - ps: |
+      $ProgressPreference = 'SilentlyContinue'
+      Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe -Outfile codecov.exe
+      .\codecov.exe

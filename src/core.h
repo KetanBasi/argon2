@@ -49,7 +49,9 @@ enum argon2_core_constants {
  * Memory blocks can be copied, XORed. Internal words can be accessed by [] (no
  * bounds checking).
  */
-typedef struct block_ { uint64_t v[ARGON2_QWORDS_IN_BLOCK]; } block;
+typedef struct block_ {
+    uint64_t v[ARGON2_QWORDS_IN_BLOCK];
+} block;
 
 /*****************Functions that work with the block******************/
 
@@ -69,7 +71,7 @@ void xor_block(block *dst, const block *src);
  * thread
  */
 typedef struct Argon2_instance_t {
-    block *memory;          /* Memory pointer */
+    block *memory; /* Memory pointer */
     uint32_t version;
     uint32_t passes;        /* Number of passes */
     uint32_t memory_blocks; /* Number of blocks in memory */
@@ -78,7 +80,7 @@ typedef struct Argon2_instance_t {
     uint32_t lanes;
     uint32_t threads;
     argon2_type type;
-    int print_internals; /* whether to print the memory blocks */
+    int print_internals;         /* whether to print the memory blocks */
     argon2_context *context_ptr; /* points back to original context */
 } argon2_instance_t;
 
@@ -109,8 +111,8 @@ typedef struct Argon2_thread_data {
  * @param num the number of elements to be allocated
  * @return ARGON2_OK if @memory is a valid pointer and memory is allocated
  */
-int allocate_memory(const argon2_context *context, uint8_t **memory,
-                    size_t num, size_t size);
+int allocate_memory(const argon2_context *context, uint8_t **memory, size_t num,
+                    size_t size);
 
 /*
  * Frees memory at the given pointer, uses the appropriate deallocator as
@@ -120,8 +122,8 @@ int allocate_memory(const argon2_context *context, uint8_t **memory,
  * @param size the size in bytes for each element to be deallocated
  * @param num the number of elements to be deallocated
  */
-void free_memory(const argon2_context *context, uint8_t *memory,
-                 size_t num, size_t size);
+void free_memory(const argon2_context *context, uint8_t *memory, size_t num,
+                 size_t size);
 
 /* Function that securely cleans the memory. This ignores any flags set
  * regarding clearing memory. Usually one just calls clear_internal_memory.

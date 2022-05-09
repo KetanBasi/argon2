@@ -16,19 +16,19 @@
  */
 
 #include <stdint.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "argon2.h"
 #include "core.h"
 
-#include "blake2/blamka-round-ref.h"
 #include "blake2/blake2-impl.h"
 #include "blake2/blake2.h"
-
+#include "blake2/blamka-round-ref.h"
 
 /*
- * Function fills a new memory block and optionally XORs the old block over the new one.
+ * Function fills a new memory block and optionally XORs the old block over the
+ * new one.
  * @next_block must be initialized.
  * @param prev_block Pointer to the previous block
  * @param ref_block Pointer to the reference block
@@ -44,7 +44,8 @@ static void fill_block(const block *prev_block, const block *ref_block,
     copy_block(&blockR, ref_block);
     xor_block(&blockR, prev_block);
     copy_block(&block_tmp, &blockR);
-    /* Now blockR = ref_block + prev_block and block_tmp = ref_block + prev_block */
+    /* Now blockR = ref_block + prev_block and block_tmp = ref_block +
+     * prev_block */
     if (with_xor) {
         /* Saving the next block contents for XOR over: */
         xor_block(&block_tmp, next_block);
@@ -180,9 +181,10 @@ void fill_segment(const argon2_instance_t *instance,
         curr_block = instance->memory + curr_offset;
         if (ARGON2_VERSION_10 == instance->version) {
             /* version 1.2.1 and earlier: overwrite, not XOR */
-            fill_block(instance->memory + prev_offset, ref_block, curr_block, 0);
+            fill_block(instance->memory + prev_offset, ref_block, curr_block,
+                       0);
         } else {
-            if(0 == position.pass) {
+            if (0 == position.pass) {
                 fill_block(instance->memory + prev_offset, ref_block,
                            curr_block, 0);
             } else {

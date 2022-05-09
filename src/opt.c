@@ -16,8 +16,8 @@
  */
 
 #include <stdint.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "argon2.h"
 #include "core.h"
@@ -26,11 +26,12 @@
 #include "blake2/blamka-round-opt.h"
 
 /*
- * Function fills a new memory block and optionally XORs the old block over the new one.
- * Memory must be initialized.
+ * Function fills a new memory block and optionally XORs the old block over the
+ * new one. Memory must be initialized.
  * @param state Pointer to the just produced block. Content will be updated(!)
  * @param ref_block Pointer to the reference block
- * @param next_block Pointer to the block to be XORed over. May coincide with @ref_block
+ * @param next_block Pointer to the block to be XORed over. May coincide with
+ * @ref_block
  * @param with_xor Whether to XOR into the new block (1) or just overwrite (0)
  * @pre all block pointers must be valid
  */
@@ -43,27 +44,30 @@ static void fill_block(__m512i *state, const block *ref_block,
     if (with_xor) {
         for (i = 0; i < ARGON2_512BIT_WORDS_IN_BLOCK; i++) {
             state[i] = _mm512_xor_si512(
-                state[i], _mm512_loadu_si512((const __m512i *)ref_block->v + i));
+                state[i],
+                _mm512_loadu_si512((const __m512i *)ref_block->v + i));
             block_XY[i] = _mm512_xor_si512(
-                state[i], _mm512_loadu_si512((const __m512i *)next_block->v + i));
+                state[i],
+                _mm512_loadu_si512((const __m512i *)next_block->v + i));
         }
     } else {
         for (i = 0; i < ARGON2_512BIT_WORDS_IN_BLOCK; i++) {
             block_XY[i] = state[i] = _mm512_xor_si512(
-                state[i], _mm512_loadu_si512((const __m512i *)ref_block->v + i));
+                state[i],
+                _mm512_loadu_si512((const __m512i *)ref_block->v + i));
         }
     }
 
     for (i = 0; i < 2; ++i) {
-        BLAKE2_ROUND_1(
-            state[8 * i + 0], state[8 * i + 1], state[8 * i + 2], state[8 * i + 3],
-            state[8 * i + 4], state[8 * i + 5], state[8 * i + 6], state[8 * i + 7]);
+        BLAKE2_ROUND_1(state[8 * i + 0], state[8 * i + 1], state[8 * i + 2],
+                       state[8 * i + 3], state[8 * i + 4], state[8 * i + 5],
+                       state[8 * i + 6], state[8 * i + 7]);
     }
 
     for (i = 0; i < 2; ++i) {
-        BLAKE2_ROUND_2(
-            state[2 * 0 + i], state[2 * 1 + i], state[2 * 2 + i], state[2 * 3 + i],
-            state[2 * 4 + i], state[2 * 5 + i], state[2 * 6 + i], state[2 * 7 + i]);
+        BLAKE2_ROUND_2(state[2 * 0 + i], state[2 * 1 + i], state[2 * 2 + i],
+                       state[2 * 3 + i], state[2 * 4 + i], state[2 * 5 + i],
+                       state[2 * 6 + i], state[2 * 7 + i]);
     }
 
     for (i = 0; i < ARGON2_512BIT_WORDS_IN_BLOCK; i++) {
@@ -80,25 +84,30 @@ static void fill_block(__m256i *state, const block *ref_block,
     if (with_xor) {
         for (i = 0; i < ARGON2_HWORDS_IN_BLOCK; i++) {
             state[i] = _mm256_xor_si256(
-                state[i], _mm256_loadu_si256((const __m256i *)ref_block->v + i));
+                state[i],
+                _mm256_loadu_si256((const __m256i *)ref_block->v + i));
             block_XY[i] = _mm256_xor_si256(
-                state[i], _mm256_loadu_si256((const __m256i *)next_block->v + i));
+                state[i],
+                _mm256_loadu_si256((const __m256i *)next_block->v + i));
         }
     } else {
         for (i = 0; i < ARGON2_HWORDS_IN_BLOCK; i++) {
             block_XY[i] = state[i] = _mm256_xor_si256(
-                state[i], _mm256_loadu_si256((const __m256i *)ref_block->v + i));
+                state[i],
+                _mm256_loadu_si256((const __m256i *)ref_block->v + i));
         }
     }
 
     for (i = 0; i < 4; ++i) {
-        BLAKE2_ROUND_1(state[8 * i + 0], state[8 * i + 4], state[8 * i + 1], state[8 * i + 5],
-                       state[8 * i + 2], state[8 * i + 6], state[8 * i + 3], state[8 * i + 7]);
+        BLAKE2_ROUND_1(state[8 * i + 0], state[8 * i + 4], state[8 * i + 1],
+                       state[8 * i + 5], state[8 * i + 2], state[8 * i + 6],
+                       state[8 * i + 3], state[8 * i + 7]);
     }
 
     for (i = 0; i < 4; ++i) {
-        BLAKE2_ROUND_2(state[ 0 + i], state[ 4 + i], state[ 8 + i], state[12 + i],
-                       state[16 + i], state[20 + i], state[24 + i], state[28 + i]);
+        BLAKE2_ROUND_2(state[0 + i], state[4 + i], state[8 + i], state[12 + i],
+                       state[16 + i], state[20 + i], state[24 + i],
+                       state[28 + i]);
     }
 
     for (i = 0; i < ARGON2_HWORDS_IN_BLOCK; i++) {
@@ -128,14 +137,14 @@ static void fill_block(__m128i *state, const block *ref_block,
 
     for (i = 0; i < 8; ++i) {
         BLAKE2_ROUND(state[8 * i + 0], state[8 * i + 1], state[8 * i + 2],
-            state[8 * i + 3], state[8 * i + 4], state[8 * i + 5],
-            state[8 * i + 6], state[8 * i + 7]);
+                     state[8 * i + 3], state[8 * i + 4], state[8 * i + 5],
+                     state[8 * i + 6], state[8 * i + 7]);
     }
 
     for (i = 0; i < 8; ++i) {
         BLAKE2_ROUND(state[8 * 0 + i], state[8 * 1 + i], state[8 * 2 + i],
-            state[8 * 3 + i], state[8 * 4 + i], state[8 * 5 + i],
-            state[8 * 6 + i], state[8 * 7 + i]);
+                     state[8 * 3 + i], state[8 * 4 + i], state[8 * 5 + i],
+                     state[8 * 6 + i], state[8 * 7 + i]);
     }
 
     for (i = 0; i < ARGON2_OWORDS_IN_BLOCK; i++) {
@@ -273,7 +282,7 @@ void fill_segment(const argon2_instance_t *instance,
             /* version 1.2.1 and earlier: overwrite, not XOR */
             fill_block(state, ref_block, curr_block, 0);
         } else {
-            if(0 == position.pass) {
+            if (0 == position.pass) {
                 fill_block(state, ref_block, curr_block, 0);
             } else {
                 fill_block(state, ref_block, curr_block, 1);

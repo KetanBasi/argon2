@@ -29,7 +29,7 @@ PREFIX ?= /usr
 # Increment on an ABI breaking change
 ABI_VERSION = 1
 
-DIST = phc-winner-argon2
+DIST = argon2
 
 SRC = src/argon2.c src/core.c src/blake2/blake2b.c src/thread.c src/encoding.c
 SRC_RUN = src/run.c

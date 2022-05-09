@@ -16,8 +16,8 @@
  */
 
 #include <stdint.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "blake2.h"
 #include "blake2-impl.h"
@@ -61,8 +61,8 @@ static BLAKE2_INLINE void blake2b_increment_counter(blake2b_state *S,
 }
 
 static BLAKE2_INLINE void blake2b_invalidate_state(blake2b_state *S) {
-    clear_internal_memory(S, sizeof(*S));      /* wipe */
-    blake2b_set_lastblock(S); /* invalidate for further use */
+    clear_internal_memory(S, sizeof(*S)); /* wipe */
+    blake2b_set_lastblock(S);             /* invalidate for further use */
 }
 
 static BLAKE2_INLINE void blake2b_init0(blake2b_state *S) {

@@ -17,8 +17,8 @@
 
 /*For memory wiping*/
 #ifdef _WIN32
-#include <windows.h>
 #include <winbase.h> /* For SecureZeroMemory */
+#include <windows.h>
 #endif
 #if defined __STDC_LIB_EXT1__
 #define __STDC_WANT_LIB_EXT1__ 1
@@ -32,10 +32,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "blake2/blake2-impl.h"
+#include "blake2/blake2.h"
 #include "core.h"
 #include "thread.h"
-#include "blake2/blake2.h"
-#include "blake2/blake2-impl.h"
 
 #ifdef GENKAT
 #include "genkat.h"
@@ -86,9 +86,9 @@ static void store_block(void *output, const block *src) {
 
 /***************Memory functions*****************/
 
-int allocate_memory(const argon2_context *context, uint8_t **memory,
-                    size_t num, size_t size) {
-    size_t memory_size = num*size;
+int allocate_memory(const argon2_context *context, uint8_t **memory, size_t num,
+                    size_t size) {
+    size_t memory_size = num * size;
     if (memory == NULL) {
         return ARGON2_MEMORY_ALLOCATION_ERROR;
     }
@@ -112,9 +112,9 @@ int allocate_memory(const argon2_context *context, uint8_t **memory,
     return ARGON2_OK;
 }
 
-void free_memory(const argon2_context *context, uint8_t *memory,
-                 size_t num, size_t size) {
-    size_t memory_size = num*size;
+void free_memory(const argon2_context *context, uint8_t *memory, size_t num,
+                 size_t size) {
+    size_t memory_size = num * size;
     clear_internal_memory(memory, memory_size);
     if (context->free_cbk) {
         (context->free_cbk)(memory, memory_size);
@@ -126,7 +126,7 @@ void free_memory(const argon2_context *context, uint8_t *memory,
 #if defined(__OpenBSD__)
 #define HAVE_EXPLICIT_BZERO 1
 #elif defined(__GLIBC__) && defined(__GLIBC_PREREQ)
-#if __GLIBC_PREREQ(2,25)
+#if __GLIBC_PREREQ(2, 25)
 #define HAVE_EXPLICIT_BZERO 1
 #endif
 #endif
@@ -147,9 +147,9 @@ void NOT_OPTIMIZED secure_wipe_memory(void *v, size_t n) {
 /* Memory clear flag defaults to true. */
 int FLAG_clear_internal_memory = 1;
 void clear_internal_memory(void *v, size_t n) {
-  if (FLAG_clear_internal_memory && v) {
-    secure_wipe_memory(v, n);
-  }
+    if (FLAG_clear_internal_memory && v) {
+        secure_wipe_memory(v, n);
+    }
 }
 
 void finalize(const argon2_context *context, argon2_instance_t *instance) {
@@ -374,14 +374,14 @@ fail:
 #endif /* ARGON2_NO_THREADS */
 
 int fill_memory_blocks(argon2_instance_t *instance) {
-	if (instance == NULL || instance->lanes == 0) {
-	    return ARGON2_INCORRECT_PARAMETER;
+    if (instance == NULL || instance->lanes == 0) {
+        return ARGON2_INCORRECT_PARAMETER;
     }
 #if defined(ARGON2_NO_THREADS)
     return fill_memory_blocks_st(instance);
 #else
-    return instance->threads == 1 ?
-			fill_memory_blocks_st(instance) : fill_memory_blocks_mt(instance);
+    return instance->threads == 1 ? fill_memory_blocks_st(instance)
+                                  : fill_memory_blocks_mt(instance);
 #endif
 }
 
@@ -411,7 +411,7 @@ int validate_inputs(const argon2_context *context) {
     }
 
     if (ARGON2_MIN_PWD_LENGTH > context->pwdlen) {
-      return ARGON2_PWD_TOO_SHORT;
+        return ARGON2_PWD_TOO_SHORT;
     }
 
     if (ARGON2_MAX_PWD_LENGTH < context->pwdlen) {

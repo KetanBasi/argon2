@@ -15,8 +15,8 @@
  * software. If not, they may be obtained at the above URLs.
  */
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -61,7 +61,7 @@ static void benchmark() {
 
     uint32_t t_cost = 3;
     uint32_t m_cost;
-    uint32_t thread_test[4] = {1, 2, 4,  8};
+    uint32_t thread_test[4] = {1, 2, 4, 8};
     argon2_type types[3] = {Argon2_i, Argon2_d, Argon2_id};
 
     memset(pwd_array, 0, inlen);
@@ -85,8 +85,8 @@ static void benchmark() {
                 start_cycles = rdtsc();
 
                 argon2_hash(t_cost, m_cost, thread_n, pwd_array, inlen,
-                            salt_array, inlen, out, outlen, NULL, 0, type,
-                            ARGON2_VERSION_NUMBER);
+                            salt_array, inlen, "", 0, out, outlen, NULL, 0,
+                            type, ARGON2_VERSION_NUMBER);
 
                 stop_cycles = rdtsc();
                 stop_time = clock();
@@ -96,8 +96,9 @@ static void benchmark() {
                 run_time += ((double)stop_time - start_time) / (CLOCKS_PER_SEC);
 
                 printf("%s %d iterations  %d MiB %d threads:  %2.2f cpb %2.2f "
-                       "Mcycles \n", argon2_type2string(type, 1), t_cost,
-                       m_cost >> 10, thread_n, (float)delta / 1024, mcycles);
+                       "Mcycles \n",
+                       argon2_type2string(type, 1), t_cost, m_cost >> 10,
+                       thread_n, (float)delta / 1024, mcycles);
             }
 
             printf("%2.4f seconds\n\n", run_time);

@@ -15,11 +15,11 @@
  * software. If not, they may be obtained at the above URLs.
  */
 
+#include "argon2.h"
+#include "core.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "argon2.h"
-#include "core.h"
 #ifdef __MINGW32__
 #include <inttypes.h>
 #else
@@ -38,7 +38,6 @@ void initial_kat(const uint8_t *blockhash, const argon2_context *context,
                context->version);
 
         printf("=======================================\n");
-
 
         printf("Memory: %u KiB, Iterations: %u, Parallelism: %u lanes, Tag "
                "length: %u bytes\n",

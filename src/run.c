@@ -36,13 +36,14 @@
 #define UNUSED_PARAMETER(x) (void)(x)
 
 static void usage(const char *cmd) {
-    printf("Usage:  %s [-h] salt [-i|-d|-id] [-t iterations] "
+    printf("Usage:  %s [-h] salt secret [-i|-d|-id] [-t iterations] "
            "[-m log2(memory in KiB) | -k memory in KiB] [-p parallelism] "
            "[-l hash length] [-e|-r] [-v (10|13)]\n",
            cmd);
     printf("\tPassword is read from stdin\n");
     printf("Parameters:\n");
     printf("\tsalt\t\tThe salt to use, at least 8 characters\n");
+    printf("\tsecret\t\tThe secret to use, at least ??? characters\n");
     printf("\t-i\t\tUse Argon2i (this is the default)\n");
     printf("\t-d\t\tUse Argon2d instead of Argon2i\n");
     printf("\t-id\t\tUse Argon2id instead of Argon2i\n");
@@ -58,8 +59,9 @@ static void usage(const char *cmd) {
            OUTLEN_DEF);
     printf("\t-e\t\tOutput only encoded hash\n");
     printf("\t-r\t\tOutput only the raw bytes of the hash\n");
-    printf("\t-v (10|13)\tArgon2 version (defaults to the most recent version, currently %x)\n",
-            ARGON2_VERSION_NUMBER);
+    printf("\t-v (10|13)\tArgon2 version (defaults to the most recent version, "
+           "currently %x)\n",
+           ARGON2_VERSION_NUMBER);
     printf("\t-h\t\tPrint %s usage\n", cmd);
 }
 
@@ -91,14 +93,15 @@ Base64-encoded hash string
 @raw_only display only the hexadecimal of the hash
 @version Argon2 version
 */
-static void run(uint32_t outlen, char *pwd, size_t pwdlen, char *salt, uint32_t t_cost,
-                uint32_t m_cost, uint32_t lanes, uint32_t threads,
-                argon2_type type, int encoded_only, int raw_only, uint32_t version) {
+static void run(uint32_t outlen, char *pwd, size_t pwdlen, char *salt,
+                char *secret, uint32_t t_cost, uint32_t m_cost, uint32_t lanes,
+                uint32_t threads, argon2_type type, int encoded_only,
+                int raw_only, uint32_t version) {
     clock_t start_time, stop_time;
-    size_t saltlen, encodedlen;
+    size_t saltlen, secretlen, encodedlen;
     int result;
-    unsigned char * out = NULL;
-    char * encoded = NULL;
+    unsigned char *out = NULL;
+    char *encoded = NULL;
 
     start_time = clock();
 
@@ -112,8 +115,13 @@ static void run(uint32_t outlen, char *pwd, size_t pwdlen, char *salt, uint32_t 
     }
 
     saltlen = strlen(salt);
-    if(UINT32_MAX < saltlen) {
+    if (UINT32_MAX < saltlen) {
         fatal("salt is too long");
+    }
+
+    secretlen = strlen(secret);
+    if (UINT32_MAX < secretlen) {
+        fatal("secret is too long");
     }
 
     UNUSED_PARAMETER(lanes);
@@ -124,16 +132,17 @@ static void run(uint32_t outlen, char *pwd, size_t pwdlen, char *salt, uint32_t 
         fatal("could not allocate memory for output");
     }
 
-    encodedlen = argon2_encodedlen(t_cost, m_cost, lanes, (uint32_t)saltlen, outlen, type);
+    encodedlen = argon2_encodedlen(t_cost, m_cost, lanes, (uint32_t)saltlen,
+                                   outlen, type);
     encoded = malloc(encodedlen + 1);
     if (!encoded) {
         clear_internal_memory(pwd, pwdlen);
         fatal("could not allocate memory for hash");
     }
 
-    result = argon2_hash(t_cost, m_cost, threads, pwd, pwdlen, salt, saltlen,
-                         out, outlen, encoded, encodedlen, type,
-                         version);
+    result =
+        argon2_hash(t_cost, m_cost, threads, pwd, pwdlen, salt, saltlen, secret,
+                    secretlen, out, outlen, encoded, encodedlen, type, version);
     if (result != ARGON2_OK)
         fatal(argon2_error_message(result));
 
@@ -160,7 +169,7 @@ static void run(uint32_t outlen, char *pwd, size_t pwdlen, char *salt, uint32_t 
     printf("%2.3f seconds\n",
            ((double)stop_time - start_time) / (CLOCKS_PER_SEC));
 
-    result = argon2_verify(encoded, pwd, pwdlen, type);
+    result = argon2_verify(encoded, pwd, pwdlen, secret, secretlen, type);
     if (result != ARGON2_OK)
         fatal(argon2_error_message(result));
     printf("Verification ok\n");
@@ -181,7 +190,7 @@ int main(int argc, char *argv[]) {
     uint32_t version = ARGON2_VERSION_NUMBER;
     int i;
     size_t pwdlen;
-    char pwd[MAX_PASS_LEN], *salt;
+    char pwd[MAX_PASS_LEN], *salt, *secret;
 
     if (argc < 2) {
         usage(argv[0]);
@@ -193,17 +202,20 @@ int main(int argc, char *argv[]) {
 
     /* get password from stdin */
     pwdlen = fread(pwd, 1, sizeof pwd, stdin);
-    if(pwdlen < 1) {
+    if (pwdlen < 1) {
         fatal("no password read");
     }
-    if(pwdlen == MAX_PASS_LEN) {
-        fatal("Provided password longer than supported in command line utility");
+    if (pwdlen == MAX_PASS_LEN) {
+        fatal(
+            "Provided password longer than supported in command line utility");
     }
 
     salt = argv[1];
 
+    secret = argv[2];
+
     /* parse options */
-    for (i = 2; i < argc; i++) {
+    for (i = 3; i < argc; i++) {
         const char *a = argv[i];
         unsigned long input = 0;
         if (!strcmp(a, "-h")) {
@@ -319,19 +331,18 @@ int main(int argc, char *argv[]) {
         fatal("cannot specify multiple Argon2 types");
     }
 
-    if(encoded_only && raw_only)
+    if (encoded_only && raw_only)
         fatal("cannot provide both -e and -r");
 
-    if(!encoded_only && !raw_only) {
+    if (!encoded_only && !raw_only) {
         printf("Type:\t\t%s\n", argon2_type2string(type, 1));
         printf("Iterations:\t%u\n", t_cost);
         printf("Memory:\t\t%u KiB\n", m_cost);
         printf("Parallelism:\t%u\n", lanes);
     }
 
-    run(outlen, pwd, pwdlen, salt, t_cost, m_cost, lanes, threads, type,
-       encoded_only, raw_only, version);
+    run(outlen, pwd, pwdlen, salt, secret, t_cost, m_cost, lanes, threads, type,
+        encoded_only, raw_only, version);
 
     return ARGON2_OK;
 }
-
