@@ -17,7 +17,8 @@
 
 /*For memory wiping*/
 #ifdef _WIN32
-#include <winbase.h> /* For SecureZeroMemory */
+/* Commented, based on https://stackoverflow.com/a/7340851 */
+/* #include <winbase.h> */ /* For SecureZeroMemory */
 #include <windows.h>
 #endif
 #if defined __STDC_LIB_EXT1__
